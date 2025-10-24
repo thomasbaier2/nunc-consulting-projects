@@ -1,0 +1,26 @@
+# NUNC Expert Management System - CV Processing Requirements
+# Abhängigkeiten für PDF-Verarbeitung und Datenextraktion
+
+# PDF-Verarbeitung
+PyPDF2>=3.0.0
+pdfplumber>=0.9.0
+
+# OpenAI Integration
+openai>=1.0.0
+
+# Supabase Integration
+supabase>=2.0.0
+
+# Word-Dokument-Generierung
+python-docx>=0.8.11
+docxtpl>=0.16.0
+
+# Text-Verarbeitung
+nltk>=3.8.0
+spacy>=3.7.0
+
+# HTTP-Requests
+requests>=2.31.0
+
+# Async-Unterstützung
+aiohttp>=3.8.0

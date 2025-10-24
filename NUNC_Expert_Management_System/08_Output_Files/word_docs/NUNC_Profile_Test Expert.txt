@@ -1,0 +1,10 @@
+NUNC Profile: Test Expert
+Hauptfokus: Consultant
+Sprachen: Deutsch/Englisch
+Zur Person: Erfahrener Consultant mit umfassender Expertise.
+Technologien: Python, Flask, Web-Development
+Besondere Kenntnisse: Projektmanagement, Beratung
+Branchenkenntnisse: IT, Consulting
+Methoden: Agile, Scrum
+Zertifizierungen: Zu ermitteln
+Projekthistorie: Verschiedene Projekte in der IT-Branche

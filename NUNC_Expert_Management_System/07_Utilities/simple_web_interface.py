@@ -1,7 +1,6 @@
-# web_interface.py
+#!/usr/bin/env python3
 """
-NUNC Expert Management System - Web Interface
-Vollständiges Web-Interface für alle System-Komponenten
+NUNC Expert Management System - Simple Web Interface
 """
 
 from flask import Flask, request, jsonify, render_template, send_file
@@ -13,65 +12,43 @@ import webbrowser
 import threading
 from datetime import datetime
 
-# Importiere alle System-Komponenten mit Fehlerbehandlung
-try:
-    sys.path.append(str(Path(__file__).parent.parent / '01_Core_System'))
-    from profile_manager import ProfileManager
-except ImportError:
-    print("Warning: ProfileManager not found")
-    ProfileManager = None
+# Importiere alle System-Komponenten
+sys.path.append(str(Path(__file__).parent / 'NUNC_Expert_Management_System' / '01_Core_System'))
+from profile_manager import ProfileManager
 
-try:
-    sys.path.append(str(Path(__file__).parent.parent / '02_Availability_System'))
-    from availability_manager import AvailabilityManager
-except ImportError:
-    print("Warning: AvailabilityManager not found")
-    AvailabilityManager = None
+sys.path.append(str(Path(__file__).parent / 'NUNC_Expert_Management_System' / '02_Availability_System'))
+from availability_manager import AvailabilityManager
 
-try:
-    sys.path.append(str(Path(__file__).parent.parent / '03_Candidate_Search'))
-    from candidate_search import CandidateSearch
-except ImportError:
-    print("Warning: CandidateSearch not found")
-    CandidateSearch = None
+sys.path.append(str(Path(__file__).parent / 'NUNC_Expert_Management_System' / '03_Candidate_Search'))
+from candidate_search import CandidateSearch
 
-try:
-    sys.path.append(str(Path(__file__).parent.parent / '04_Project_Matching'))
-    from project_matcher import ProjectMatcher
-except ImportError:
-    print("Warning: ProjectMatcher not found")
-    ProjectMatcher = None
+sys.path.append(str(Path(__file__).parent / 'NUNC_Expert_Management_System' / '04_Project_Matching'))
+from project_matcher import ProjectMatcher
 
 # CV-Processing Komponenten
-try:
-    sys.path.append(str(Path(__file__).parent.parent / '06_CV_Processing'))
-    from cv_processor import CvProcessor
-    from word_generator import NuncWordGenerator
-    from supabase_integration import SupabaseIntegration
-except ImportError as e:
-    print(f"Warning: CV-Processing modules not found: {e}")
-    CvProcessor = None
-    NuncWordGenerator = None
-    SupabaseIntegration = None
+sys.path.append(str(Path(__file__).parent / 'NUNC_Expert_Management_System' / '06_CV_Processing'))
+from cv_processor import CvProcessor
+from word_generator import NuncWordGenerator
+from supabase_integration import SupabaseIntegration
 
 app = Flask(__name__)
 
-# Globale System-Komponenten mit Null-Checks
-profile_manager = ProfileManager() if ProfileManager else None
-availability_manager = AvailabilityManager() if AvailabilityManager else None
-candidate_search = CandidateSearch() if CandidateSearch else None
-project_matcher = ProjectMatcher() if ProjectMatcher else None
+# Globale System-Komponenten
+profile_manager = ProfileManager()
+availability_manager = AvailabilityManager()
+candidate_search = CandidateSearch()
+project_matcher = ProjectMatcher()
 
 # CV-Processing Komponenten
-cv_processor = CvProcessor() if CvProcessor else None
-word_generator = NuncWordGenerator() if NuncWordGenerator else None
-supabase_integration = SupabaseIntegration() if SupabaseIntegration else None
+cv_processor = CvProcessor()
+word_generator = NuncWordGenerator()
+supabase_integration = SupabaseIntegration()
 
 # Ordner für Uploads und Outputs
-UPLOAD_FOLDER = Path(__file__).parent.parent / '08_Output_Files' / 'uploads'
-OUTPUT_FOLDER = Path(__file__).parent.parent / '08_Output_Files' / 'generated_profiles'
-WORD_OUTPUT_FOLDER = Path(__file__).parent.parent / '08_Output_Files' / 'word_documents'
-HTML_OUTPUT_FOLDER = Path(__file__).parent.parent / '08_Output_Files' / 'html_templates'
+UPLOAD_FOLDER = Path(__file__).parent / 'NUNC_Expert_Management_System' / '08_Output_Files' / 'uploads'
+OUTPUT_FOLDER = Path(__file__).parent / 'NUNC_Expert_Management_System' / '08_Output_Files' / 'generated_profiles'
+WORD_OUTPUT_FOLDER = Path(__file__).parent / 'NUNC_Expert_Management_System' / '08_Output_Files' / 'word_documents'
+HTML_OUTPUT_FOLDER = Path(__file__).parent / 'NUNC_Expert_Management_System' / '08_Output_Files' / 'html_templates'
 
 # Erstelle Ordner falls nicht vorhanden
 for folder in [UPLOAD_FOLDER, OUTPUT_FOLDER, WORD_OUTPUT_FOLDER, HTML_OUTPUT_FOLDER]:
@@ -79,172 +56,25 @@ for folder in [UPLOAD_FOLDER, OUTPUT_FOLDER, WORD_OUTPUT_FOLDER, HTML_OUTPUT_FOL
 
 @app.route('/')
 def index():
-    """Hauptseite mit System-Übersicht"""
+    """Hauptseite mit System-Ubersicht"""
     return render_template('index.html')
-
-@app.route('/profiles')
-def profiles_page():
-    """Seite für Profil-Management"""
-    return render_template('profiles.html')
-
-@app.route('/availability')
-def availability_page():
-    """Seite für Verfügbarkeits-Management"""
-    return render_template('availability.html')
-
-@app.route('/candidates')
-def candidates_page():
-    """Seite für Kandidaten-Suche"""
-    return render_template('candidates.html')
-
-@app.route('/projects')
-def projects_page():
-    """Seite für Projekt-Matching"""
-    return render_template('projects.html')
 
 @app.route('/cv-processing')
 def cv_processing_page():
-    """Seite für CV-Verarbeitung"""
+    """Seite fur CV-Verarbeitung"""
     return render_template('cv_processing.html')
-
-# API-Endpunkte für Profile
-@app.route('/api/profiles', methods=['GET'])
-def get_profiles():
-    """Gibt alle Profile zurück"""
-    try:
-        if not profile_manager:
-            return jsonify({'success': False, 'error': 'ProfileManager not available'})
-        profiles = profile_manager.get_all_profiles()
-        return jsonify({'success': True, 'profiles': profiles})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
-
-@app.route('/api/profiles', methods=['POST'])
-def create_profile():
-    """Erstellt ein neues Profil"""
-    try:
-        if not profile_manager:
-            return jsonify({'success': False, 'error': 'ProfileManager not available'})
-        profile_data = request.json
-        profile_id = profile_manager.create_profile(profile_data)
-        return jsonify({'success': True, 'profile_id': profile_id})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
-
-@app.route('/api/profiles/<profile_id>', methods=['PUT'])
-def update_profile(profile_id):
-    """Aktualisiert ein Profil"""
-    try:
-        if not profile_manager:
-            return jsonify({'success': False, 'error': 'ProfileManager not available'})
-        update_data = request.json
-        success = profile_manager.update_profile(profile_id, update_data)
-        return jsonify({'success': success})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
-
-@app.route('/api/profiles/<profile_id>', methods=['DELETE'])
-def delete_profile(profile_id):
-    """Löscht ein Profil"""
-    try:
-        if not profile_manager:
-            return jsonify({'success': False, 'error': 'ProfileManager not available'})
-        success = profile_manager.delete_profile(profile_id)
-        return jsonify({'success': success})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
-
-# API-Endpunkte für Verfügbarkeit
-@app.route('/api/availability/request', methods=['POST'])
-def create_availability_request():
-    """Erstellt eine Verfügbarkeits-Anfrage"""
-    try:
-        data = request.json
-        expert_emails = data.get('expert_emails', [])
-        project_info = data.get('project_info', {})
-        
-        request_id = availability_manager.create_availability_request(expert_emails, project_info)
-        return jsonify({'success': True, 'request_id': request_id})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
-
-@app.route('/api/availability/respond/<request_id>')
-def respond_availability(request_id):
-    """Verarbeitet Verfügbarkeits-Antworten"""
-    try:
-        status = request.args.get('status', '')
-        expert_email = request.args.get('email', '')
-        notes = request.args.get('notes', '')
-        
-        success = availability_manager.process_availability_response(
-            request_id, expert_email, status, notes
-        )
-        
-        if success:
-            return render_template('availability_response.html', 
-                                status=status, 
-                                message="Antwort erfolgreich übermittelt!")
-        else:
-            return render_template('availability_response.html', 
-                                status='error', 
-                                message="Fehler bei der Übermittlung!")
-    except Exception as e:
-        return render_template('availability_response.html', 
-                            status='error', 
-                            message=f"Fehler: {str(e)}")
-
-# API-Endpunkte für Kandidaten-Suche
-@app.route('/api/candidates/search', methods=['POST'])
-def search_candidates():
-    """Sucht Kandidaten auf verschiedenen Plattformen"""
-    try:
-        search_params = request.json
-        results = candidate_search.search_all_platforms(search_params)
-        return jsonify({'success': True, 'candidates': results})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
-
-# API-Endpunkte für Projekt-Matching
-@app.route('/api/projects', methods=['GET'])
-def get_projects():
-    """Gibt alle Projekte zurück"""
-    try:
-        projects = project_matcher.get_all_projects()
-        return jsonify({'success': True, 'projects': projects})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
-
-@app.route('/api/projects', methods=['POST'])
-def create_project():
-    """Erstellt ein neues Projekt"""
-    try:
-        project_data = request.json
-        project_id = project_matcher.create_project(project_data)
-        return jsonify({'success': True, 'project_id': project_id})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
-
-@app.route('/api/projects/<project_id>/match', methods=['POST'])
-def match_project(project_id):
-    """Matcht Experten zu einem Projekt"""
-    try:
-        expert_profiles = request.json.get('expert_profiles', [])
-        matches = project_matcher.match_experts_to_project(project_id, expert_profiles)
-        return jsonify({'success': True, 'matches': matches})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
 
 # CV-Processing API-Endpunkte
 @app.route('/api/cv/upload', methods=['POST'])
 def upload_cv():
-    """Lädt CV-PDF hoch und verarbeitet es"""
+    """Ladt CV-PDF hoch und verarbeitet es"""
     try:
         if 'file' not in request.files:
-            return jsonify({'success': False, 'error': 'Keine Datei ausgewählt'})
+            return jsonify({'success': False, 'error': 'Keine Datei ausgewahlt'})
         
         file = request.files['file']
         if file.filename == '':
-            return jsonify({'success': False, 'error': 'Keine Datei ausgewählt'})
+            return jsonify({'success': False, 'error': 'Keine Datei ausgewahlt'})
         
         if file and file.filename.lower().endswith('.pdf'):
             # Datei speichern
@@ -253,25 +83,16 @@ def upload_cv():
             file.save(file_path)
             
             # CV verarbeiten
-            if not cv_processor:
-                return jsonify({'success': False, 'error': 'CV processor not available'})
-            
             processed_data = cv_processor.process_pdf(str(file_path))
             
             if 'error' in processed_data:
                 return jsonify({'success': False, 'error': processed_data['error']})
             
             # Profil im System erstellen
-            if profile_manager:
-                profile_id = profile_manager.create_profile(processed_data)
-            else:
-                profile_id = None
+            profile_id = profile_manager.create_profile(processed_data)
             
             # In Supabase speichern
-            if supabase_integration:
-                supabase_id = supabase_integration.insert_profile(processed_data)
-            else:
-                supabase_id = None
+            supabase_id = supabase_integration.insert_profile(processed_data)
             
             return jsonify({
                 'success': True, 
@@ -289,9 +110,6 @@ def upload_cv():
 def generate_word_document():
     """Generiert Word-Dokument aus Profil"""
     try:
-        if not word_generator:
-            return jsonify({'success': False, 'error': 'Word generator not available'})
-        
         profile_data = request.json
         
         # Word-Dokument generieren
@@ -311,44 +129,19 @@ def generate_word_document():
 
 @app.route('/api/cv/download/<filename>')
 def download_word_document(filename):
-    """Lädt Word-Dokument herunter"""
+    """Ladt Word-Dokument herunter"""
     try:
         file_path = WORD_OUTPUT_FOLDER / filename
-        
-        # Sicherstellen, dass es eine .docx Datei ist
-        if not filename.endswith('.docx'):
-            # Suche nach .docx Datei mit ähnlichem Namen
-            base_name = filename.replace('.txt', '').replace('.pdf', '')
-            docx_files = list(WORD_OUTPUT_FOLDER.glob(f"*{base_name}*.docx"))
-            if docx_files:
-                file_path = docx_files[0]
-            else:
-                return jsonify({'success': False, 'error': 'Word-Dokument nicht gefunden'})
-        
         if file_path.exists():
-            return send_file(str(file_path), as_attachment=True, mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+            return send_file(str(file_path), as_attachment=True)
         else:
             return jsonify({'success': False, 'error': 'Datei nicht gefunden'})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
-@app.route('/api/cv/semantic-search', methods=['POST'])
-def semantic_search():
-    """Führt semantische Suche durch"""
-    try:
-        query = request.json.get('query', '')
-        limit = request.json.get('limit', 5)
-        
-        results = supabase_integration.semantic_search(query, limit)
-        
-        return jsonify({'success': True, 'results': results})
-        
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
-
 def create_templates():
-    """Erstellt HTML-Templates für das Web-Interface"""
-    templates_dir = Path(__file__).parent / 'templates'
+    """Erstellt HTML-Templates fur das Web-Interface"""
+    templates_dir = Path(__file__).parent / 'NUNC_Expert_Management_System' / '05_Shared_Components' / 'templates'
     templates_dir.mkdir(exist_ok=True)
     
     # Index Template
@@ -448,7 +241,7 @@ def create_templates():
         <div class="header">
             <div class="nunc-logo">NUNC Consulting GmbH</div>
             <h1>Expert Management System</h1>
-            <p>Vollständiges Expert-Management für NUNC Consulting</p>
+            <p>Vollstandiges Expert-Management fur NUNC Consulting</p>
         </div>
         
         <div class="nav">
@@ -459,9 +252,9 @@ def create_templates():
             </div>
             
             <div class="nav-card">
-                <h2>Verfügbarkeits-Management</h2>
-                <p>Verfügbarkeits-Anfragen senden, Antworten verwalten und Verfügbarkeit tracken.</p>
-                <a href="/availability">Verfügbarkeit verwalten</a>
+                <h2>Verfugbarkeits-Management</h2>
+                <p>Verfugbarkeits-Anfragen senden, Antworten verwalten und Verfugbarkeit tracken.</p>
+                <a href="/availability">Verfugbarkeit verwalten</a>
             </div>
             
             <div class="nav-card">
@@ -572,21 +365,6 @@ def create_templates():
             background: linear-gradient(135deg, #1a1a2e, #0f3460);
             transform: translateY(-2px);
         }
-        .process-btn {
-            background: linear-gradient(135deg, #28a745, #20c997);
-            color: white;
-            padding: 15px 30px;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: 600;
-            margin: 20px 0;
-            transition: all 0.3s ease;
-        }
-        .process-btn:hover {
-            background: linear-gradient(135deg, #20c997, #28a745);
-            transform: translateY(-2px);
-        }
         .results-section {
             background: rgba(255, 255, 255, 0.95);
             padding: 30px;
@@ -661,17 +439,17 @@ def create_templates():
 <body>
     <div class="container">
         <div class="header">
-            <h1>📄 CV-Verarbeitung</h1>
+            <h1>CV-Verarbeitung</h1>
             <p>Laden Sie PDF-CVs hoch und konvertieren Sie sie automatisch in NUNC-Profile</p>
         </div>
         
         <div class="upload-section">
             <h2>PDF-CV hochladen</h2>
             <div class="upload-area" id="uploadArea">
-                <p>📁 Ziehen Sie eine PDF-Datei hierher oder klicken Sie zum Auswählen</p>
+                <p>Ziehen Sie eine PDF-Datei hierher oder klicken Sie zum Auswahlen</p>
                 <input type="file" id="fileInput" class="file-input" accept=".pdf">
                 <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
-                    Datei auswählen
+                    Datei auswahlen
                 </button>
             </div>
             <div class="loading" id="loading">
@@ -685,17 +463,17 @@ def create_templates():
             <div id="profileData"></div>
             <div>
                 <button class="download-btn" id="downloadWordBtn" onclick="downloadWord()">
-                    📄 Word-Dokument herunterladen
+                    Word-Dokument herunterladen
                 </button>
                 <button class="download-btn" id="saveProfileBtn" onclick="saveProfile()">
-                    💾 Profil speichern
+                    Profil speichern
                 </button>
             </div>
         </div>
         
         <div style="text-align: center;">
             <button class="back-btn" onclick="window.location.href='/'">
-                ← Zurück zur Hauptseite
+                Zuruck zur Hauptseite
             </button>
         </div>
     </div>
@@ -703,7 +481,7 @@ def create_templates():
     <script>
         let currentProfileData = null;
         
-        // Drag & Drop Funktionalität
+        // Drag & Drop Funktionalitat
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
         
@@ -733,7 +511,7 @@ def create_templates():
         
         function handleFile(file) {
             if (file.type !== 'application/pdf') {
-                alert('Bitte wählen Sie eine PDF-Datei aus.');
+                alert('Bitte wahlen Sie eine PDF-Datei aus.');
                 return;
             }
             
@@ -768,16 +546,16 @@ def create_templates():
         function displayProfile(profileData) {
             const profileHtml = `
                 <div class="profile-data">
-                    <div class="profile-field"><strong>Name:</strong> ${profileData.expert_name || 'Nicht verfügbar'}</div>
-                    <div class="profile-field"><strong>Hauptfokus:</strong> ${profileData.hauptfokus || 'Nicht verfügbar'}</div>
-                    <div class="profile-field"><strong>Sprachen:</strong> ${profileData.sprachen || 'Nicht verfügbar'}</div>
-                    <div class="profile-field"><strong>Zur Person:</strong> ${profileData.zur_person || 'Nicht verfügbar'}</div>
-                    <div class="profile-field"><strong>Technologien:</strong> ${profileData.technologien || 'Nicht verfügbar'}</div>
-                    <div class="profile-field"><strong>Besondere Kenntnisse:</strong> ${profileData.besondere_kenntnisse || 'Nicht verfügbar'}</div>
-                    <div class="profile-field"><strong>Branchenkenntnisse:</strong> ${profileData.branchenkenntnisse || 'Nicht verfügbar'}</div>
-                    <div class="profile-field"><strong>Methoden:</strong> ${profileData.methoden || 'Nicht verfügbar'}</div>
-                    <div class="profile-field"><strong>Zertifizierungen:</strong> ${profileData.zertifizierungen || 'Nicht verfügbar'}</div>
-                    <div class="profile-field"><strong>Projekthistorie:</strong> ${profileData.projekthistorie_text || 'Nicht verfügbar'}</div>
+                    <div class="profile-field"><strong>Name:</strong> ${profileData.expert_name || 'Nicht verfugbar'}</div>
+                    <div class="profile-field"><strong>Hauptfokus:</strong> ${profileData.hauptfokus || 'Nicht verfugbar'}</div>
+                    <div class="profile-field"><strong>Sprachen:</strong> ${profileData.sprachen || 'Nicht verfugbar'}</div>
+                    <div class="profile-field"><strong>Zur Person:</strong> ${profileData.zur_person || 'Nicht verfugbar'}</div>
+                    <div class="profile-field"><strong>Technologien:</strong> ${profileData.technologien || 'Nicht verfugbar'}</div>
+                    <div class="profile-field"><strong>Besondere Kenntnisse:</strong> ${profileData.besondere_kenntnisse || 'Nicht verfugbar'}</div>
+                    <div class="profile-field"><strong>Branchenkenntnisse:</strong> ${profileData.branchenkenntnisse || 'Nicht verfugbar'}</div>
+                    <div class="profile-field"><strong>Methoden:</strong> ${profileData.methoden || 'Nicht verfugbar'}</div>
+                    <div class="profile-field"><strong>Zertifizierungen:</strong> ${profileData.zertifizierungen || 'Nicht verfugbar'}</div>
+                    <div class="profile-field"><strong>Projekthistorie:</strong> ${profileData.projekthistorie_text || 'Nicht verfugbar'}</div>
                 </div>
             `;
             
@@ -787,7 +565,7 @@ def create_templates():
         
         function downloadWord() {
             if (!currentProfileData) {
-                alert('Kein Profil verfügbar');
+                alert('Kein Profil verfugbar');
                 return;
             }
             
@@ -813,7 +591,7 @@ def create_templates():
         
         function saveProfile() {
             if (!currentProfileData) {
-                alert('Kein Profil verfügbar');
+                alert('Kein Profil verfugbar');
                 return;
             }
             
@@ -844,11 +622,10 @@ def create_templates():
     with open(templates_dir / 'cv_processing.html', 'w', encoding='utf-8') as f:
         f.write(cv_processing_html)
     
-    # Weitere Templates werden bei Bedarf erstellt
     print("Templates created")
 
 def start_web_interface():
-    """Startet das vollständige Web-Interface"""
+    """Startet das vollstandige Web-Interface"""
     print("Starting NUNC Expert Management System...")
     
     # Templates erstellen

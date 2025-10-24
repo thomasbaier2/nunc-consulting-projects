@@ -1,0 +1,38 @@
+# NUNC Expert Management System - Environment Configuration
+# Kopiere diese Datei zu .env und fülle deine echten Werte ein
+
+# Supabase Configuration
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_KEY=your_supabase_anon_key_here
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
+
+# OpenAI Configuration (für KI-Features)
+OPENAI_API_KEY=your_openai_api_key_here
+
+# System Configuration
+DEBUG=True
+LOG_LEVEL=INFO
+MAX_PROFILES=100
+
+# File Upload Settings
+MAX_FILE_SIZE_MB=10
+ALLOWED_EXTENSIONS=pdf,doc,docx
+
+# Database Settings
+DB_POOL_SIZE=10
+DB_TIMEOUT=30
+
+# Security
+SECRET_KEY=your_secret_key_for_sessions
+JWT_SECRET=your_jwt_secret
+
+# Email Configuration (optional)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASSWORD=your_app_password
+
+# LinkedIn/Freelancermap API (optional)
+LINKEDIN_CLIENT_ID=your_linkedin_client_id
+LINKEDIN_CLIENT_SECRET=your_linkedin_client_secret
+FREELANCERMAP_API_KEY=your_freelancermap_api_key

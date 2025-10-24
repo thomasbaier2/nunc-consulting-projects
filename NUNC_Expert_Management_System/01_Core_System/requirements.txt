@@ -1,0 +1,13 @@
+# NUNC Expert Management System - Core System Requirements
+# Basis-Abhängigkeiten für Profile-Management
+
+# JSON-Verarbeitung (Standard-Bibliothek)
+# datetime (Standard-Bibliothek)
+# pathlib (Standard-Bibliothek)
+# typing (Standard-Bibliothek)
+# dataclasses (Standard-Bibliothek)
+# enum (Standard-Bibliothek)
+
+# Externe Abhängigkeiten
+pydantic>=2.0.0          # Datenvalidierung
+python-dateutil>=2.8.0   # Datum/Zeit-Verarbeitung
